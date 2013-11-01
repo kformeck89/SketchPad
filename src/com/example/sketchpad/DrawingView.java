@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PorterDuff;
@@ -98,6 +99,9 @@ public class DrawingView extends View {
 	}
 	public void setLastBrushSize(float lastBrushSize) {
 		this.lastBrushSize = lastBrushSize;
+	}
+	public void setBackgroundImage(Bitmap image) {
+		drawCanvas.drawBitmap(image, new Matrix(), null);
 	}
 	public float getLastBrushSize() {
 		return lastBrushSize;

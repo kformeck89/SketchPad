@@ -15,6 +15,10 @@
         android:showAsAction="ifRoom"
         android:title="@string/share"
         android:actionProviderClass="android.widget.ShareActionProvider"/>
+    <item
+        android:id="@+id/menu_change_background"
+        android:showAsAction="never"
+        android:title="@string/change_background"/>
     <item 
         android:id="@+id/menu_set_wallpaper"
         android:showAsAction="never"

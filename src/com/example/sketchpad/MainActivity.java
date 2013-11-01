@@ -1,9 +1,13 @@
 package com.example.sketchpad;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -14,6 +18,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
 import android.graphics.BitmapFactory;
+import android.graphics.Picture;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -29,6 +34,7 @@ import android.widget.ShareActionProvider.OnShareTargetSelectedListener;
 import android.widget.Toast;
 
 public class MainActivity extends Activity {
+	private static final String FILE_TYPE = ".jpg";
 	private DrawingView drawView;
 	private ImageButton btnCurrPaint;
 	private ImageButton btnDraw;
@@ -103,6 +109,57 @@ public class MainActivity extends Activity {
 		
 		saveDialog.show();
 	}
+	private void changeBackground() {
+		AlertDialog.Builder changeBg = new AlertDialog.Builder(MainActivity.this);
+	
+		changeBg.setTitle("Change Drawing Background");
+		changeBg.setMessage("Load an image or a static color?");
+		changeBg.setPositiveButton("Load Image", new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				ImageFileDialog imgDialog = new ImageFileDialog(
+						MainActivity.this, 
+						new File(Environment.getExternalStoragePublicDirectory(
+								     Environment.DIRECTORY_PICTURES).getPath()));
+				imgDialog.setFileEndsWith(FILE_TYPE);
+				imgDialog.addFileListener(new ImageFileDialog.FileSelectedListener() {
+					@Override
+					public void fileSelected(File file) {
+						try {	
+							drawView.setBackgroundImage(
+									BitmapFactory.decodeFile(file.getPath()));
+						} catch (Exception ex) {
+							Toast.makeText(
+									MainActivity.this,
+									"There was an issue importing the selected file.",
+									Toast.LENGTH_SHORT)
+									.show();
+						}
+					}	
+				});
+				imgDialog.showDialog();				
+			}
+		});
+		changeBg.setNegativeButton("Static Color", new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				HSVColorPickerDialog.OnColorSelectedListener colorSelectedListener =
+						new HSVColorPickerDialog.OnColorSelectedListener() {	
+							@Override
+							public void colorSelected(Integer color) {
+								drawView.setBackgroundColor(color);
+							}
+						};
+				HSVColorPickerDialog colorPicker = new HSVColorPickerDialog(
+						MainActivity.this,
+						0xFF4488CC,
+						colorSelectedListener);
+				colorPicker.setTitle("Pick a Color");
+				colorPicker.show();
+			}
+		});
+		changeBg.show();
+	}
 	private void setAsWallpaper() {
 		File image = writeDrawingToDisk(false);
 		Bitmap bmp = BitmapFactory.decodeFile(image.getPath());
@@ -162,26 +219,12 @@ public class MainActivity extends Activity {
 					"There was an issue saving the image.",
 					Toast.LENGTH_SHORT)
 					.show();
-		}
-		
+		}		
 		if (putIntoGallery) {
 			putImageIntoGallery(pictureFile);
 		}
 		
 		return pictureFile;
-				
-//		String imgUrlString;
-//		
-//		drawView.setDrawingCacheEnabled(true);
-//		imgUrlString = MediaStore.Images
-//					             .Media
-//			                     .insertImage(
-//			                         getContentResolver(),
-//			                         drawView.getDrawingCache(),
-//			               	         UUID.randomUUID().toString() + ".png",
-//			            	         "drawing");
-//		
-//		return MediaStore.Images.Media.getContentUri(imgUrlString);
 	}
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -217,6 +260,9 @@ public class MainActivity extends Activity {
 				break;
 			case R.id.menu_save:
 				saveDrawing();
+				break;
+			case R.id.menu_change_background:
+				changeBackground();
 				break;
 			case R.id.menu_set_wallpaper:
 				setAsWallpaper();
