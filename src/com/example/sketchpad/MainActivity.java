@@ -254,6 +254,11 @@ public class MainActivity extends Activity {
 		
 		return pictureFile;
 	}
+	private Bitmap scaleImage(Bitmap bmp) {
+		double lengthToWidthRatio = (((double)bmp.getHeight()) / (double)bmp.getWidth());
+		double scaledWidth = ((double)drawView.getHeight()) / lengthToWidthRatio; 
+		return Bitmap.createScaledBitmap(bmp, (int)scaledWidth, drawView.getHeight(), false);
+	}
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -300,11 +305,11 @@ public class MainActivity extends Activity {
 			case TAKE_PICTURE:
 				if (resultCode == Activity.RESULT_OK) {
 					getContentResolver().notifyChange(imageUri, null);
-					//find imageview
 					try {
 						Bitmap bmp = MediaStore.Images.Media.getBitmap(
 								getContentResolver(), imageUri);
-						drawView.setBackgroundImage(bmp);
+						drawView.setBackgroundImage(scaleImage(bmp));
+						bmp = null;
 					} catch (Exception ex) {
 						Toast.makeText(
 								this,
