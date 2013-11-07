@@ -280,6 +280,7 @@ public class MainActivity extends Activity {
 		largeBrush = getResources().getInteger(R.integer.large_size);
 		
 		drawView.setBrushSize(mediumBrush);
+		drawView.setColor(btnCurrPaint.getTag().toString());
 		btnCurrPaint.setImageDrawable(getResources().getDrawable(R.drawable.paint_pressed));		
 		btnDraw.setOnClickListener(drawClickListener);
 		btnErase.setOnClickListener(eraseClickListener);
