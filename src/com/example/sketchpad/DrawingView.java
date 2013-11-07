@@ -57,6 +57,11 @@ public class DrawingView extends View {
 		canvas.drawBitmap(canvasBitmap, 0, 0, canvasPaint);
 		canvas.drawPath(drawPath, drawPaint);
 	}
+	public void startNewDrawing() {
+		setBackgroundColor(getResources().getColor(R.color.white));
+		drawCanvas.drawColor(0, PorterDuff.Mode.CLEAR);
+		invalidate();
+	}
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
 		float touchX = event.getX();
@@ -78,10 +83,6 @@ public class DrawingView extends View {
 		}
 		invalidate();
 		return true;
-	}
-	public void startNewDrawing() {
-		drawCanvas.drawColor(0, PorterDuff.Mode.CLEAR);
-		invalidate();
 	}
 	
 	public void setColor(String newColor) {

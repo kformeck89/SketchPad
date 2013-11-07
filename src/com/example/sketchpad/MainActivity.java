@@ -1,30 +1,14 @@
 package com.example.sketchpad;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.Dialog;
-import android.app.WallpaperManager;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.graphics.Bitmap.CompressFormat;
-import android.graphics.BitmapFactory;
-import android.graphics.Picture;
-import android.hardware.Camera;
-import android.hardware.Camera.CameraInfo;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.provider.MediaStore;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -37,241 +21,26 @@ import android.widget.ShareActionProvider.OnShareTargetSelectedListener;
 import android.widget.Toast;
 
 public class MainActivity extends Activity {
-	private static final String FILE_TYPE = ".jpg";
-	private static final String ACTION_CAMERA = "android.media.action.IMAGE_CAPTURE";
-	private static final int TAKE_PICTURE = 1;
+	private Drawing drawing;
 	private DrawingView drawView;
+	private CameraManager camMan;
 	private ImageButton btnCurrPaint;
 	private ImageButton btnDraw;
 	private ImageButton btnErase;
 	private ShareActionProvider shareActionProvider;
-	private Uri imageUri;
-	private int cameraId;
 	private float smallBrush;
 	private float mediumBrush;
 	private float largeBrush;
 	private boolean hasCamera;
 	
-	private void setBrushSize(float brushSize) {
-		drawView.setErasing(false);
-		drawView.setBrushSize(brushSize);
-		drawView.setLastBrushSize(brushSize);
-	}
-	private void setEraserSize(float eraserSize) {
-		drawView.setErasing(true);
-		drawView.setBrushSize(eraserSize);
-	}
-	private void newDrawing() {
-		AlertDialog.Builder newDrawingDialog = new AlertDialog.Builder(MainActivity.this);
-		
-		newDrawingDialog.setTitle("New Drawing");
-		newDrawingDialog.setMessage("Start new drawing (you will lose the current drawing)?");
-		newDrawingDialog.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				drawView.startNewDrawing();
-				dialog.dismiss();
-			}
-		});
-		newDrawingDialog.setNegativeButton("No", new DialogInterface.OnClickListener() {
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				dialog.cancel();
-			}
-		});
-		
-		newDrawingDialog.show();
-	}
-	private void saveDrawing() {
-		AlertDialog.Builder saveDialog = new AlertDialog.Builder(MainActivity.this);
-		
-		saveDialog.setTitle("Save Drawing");
-		saveDialog.setMessage("Save drawing to device Gallery?");
-		saveDialog.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				File image = writeDrawingToDisk(true);
-				if (image != null) {
-					Toast.makeText(
-							getApplicationContext(),
-							"Drawing saved to the gallery!",
-							Toast.LENGTH_SHORT)
-							.show();
-				} else {
-					Toast.makeText(
-							getApplicationContext(),
-							"Oops! Image could not be saved.",
-							Toast.LENGTH_SHORT)
-							.show();
-				}
-				
-				drawView.destroyDrawingCache();
-			}
-		});
-		saveDialog.setNegativeButton("No", new DialogInterface.OnClickListener() {
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				dialog.cancel();
-			}
-		});
-		
-		saveDialog.show();
-	}
-	private void changeBackground() {
-		AlertDialog.Builder changeBg = new AlertDialog.Builder(MainActivity.this);
-	
-		changeBg.setTitle("Change Drawing Background");
-		changeBg.setMessage("Load an image or a static color?");
-		changeBg.setPositiveButton("Load Image", new DialogInterface.OnClickListener() {
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				ImageFileDialog imgDialog = new ImageFileDialog(
-						MainActivity.this, 
-						new File(Environment.getExternalStoragePublicDirectory(
-								     Environment.DIRECTORY_PICTURES).getPath()));
-				imgDialog.setFileEndsWith(FILE_TYPE);
-				imgDialog.addFileListener(new ImageFileDialog.FileSelectedListener() {
-					@Override
-					public void fileSelected(File file) {
-						try {	
-							drawView.setBackgroundImage(
-									BitmapFactory.decodeFile(file.getPath()));
-						} catch (Exception ex) {
-							Toast.makeText(
-									MainActivity.this,
-									"There was an issue importing the selected file.",
-									Toast.LENGTH_SHORT)
-									.show();
-						}
-					}	
-				});
-				imgDialog.showDialog();				
-			}
-		});
-		changeBg.setNegativeButton("Static Color", new DialogInterface.OnClickListener() {
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				HSVColorPickerDialog.OnColorSelectedListener colorSelectedListener =
-						new HSVColorPickerDialog.OnColorSelectedListener() {	
-							@Override
-							public void colorSelected(Integer color) {
-								drawView.setBackgroundColor(color);
-							}
-						};
-				HSVColorPickerDialog colorPicker = new HSVColorPickerDialog(
-						MainActivity.this,
-						0xFF4488CC,
-						colorSelectedListener);
-				colorPicker.setTitle("Pick a Color");
-				colorPicker.show();
-			}
-		});
-		changeBg.show();
-	}
-	private void takeImage() {
-		Intent cameraIntent = new Intent(ACTION_CAMERA);
-		File photo = new File(Environment.getExternalStorageDirectory(), "Pic.jpg");
-		cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(photo));
-		imageUri = Uri.fromFile(photo);
-		startActivityForResult(cameraIntent, TAKE_PICTURE);
-	}
-	private void setAsWallpaper() {
-		File image = writeDrawingToDisk(false);
-		Bitmap bmp = BitmapFactory.decodeFile(image.getPath());
-		WallpaperManager wpMgr = WallpaperManager.getInstance(this);
-		try {
-			wpMgr.setBitmap(bmp);
-		} catch (IOException e) {
-			Toast.makeText(
-					getApplicationContext(),
-					"There was an issue setting the image as the wallpaper.",
-					Toast.LENGTH_SHORT)
-					.show();
-		}
-	}
-	private void putImageIntoGallery(File image) {
-		try {
-			MediaStore.Images.Media.insertImage(
-					getContentResolver(), 
-					image.getPath(), 
-					"lastest_drawing", 
-					"A drawing done in SketchPad!");
-		} catch (FileNotFoundException e) {
-			Toast.makeText(
-					getApplicationContext(),
-					"The file could not be added to the gallery.",
-					Toast.LENGTH_SHORT)
-					.show();
-		}
-	}
-	private int findCamera() {
-		int foundId = -1;
-		int numCams = Camera.getNumberOfCameras();
-		for (int i = 0; i < numCams; i++) {
-			CameraInfo info = new CameraInfo();
-			Camera.getCameraInfo(i, info);
-			if (info.facing == CameraInfo.CAMERA_FACING_BACK) {
-				foundId = i;
-				break;
-			}
-		}
-		return foundId;
-	}
-	private File writeDrawingToDisk(boolean putIntoGallery) {
-		drawView.setDrawingCacheEnabled(true);
-		File pictureFileDir = new File(
-				Environment.getExternalStoragePublicDirectory(
-						Environment.DIRECTORY_PICTURES),
-						"SketchPad");
-		if (!pictureFileDir.exists() && !pictureFileDir.mkdirs()) {
-			Toast.makeText(
-					this,
-					"Can't create directory to save the image.",
-					Toast.LENGTH_SHORT)
-					.show();
-			return null;
-		}
-		
-		String filename = pictureFileDir.getPath() + File.separator + "latest_drawing.png";
-		File pictureFile = new File(filename);
-		Bitmap bitmap = drawView.getDrawingCache();
-		try {
-			pictureFile.createNewFile();
-			FileOutputStream oStream = new FileOutputStream(pictureFile);
-			bitmap.compress(CompressFormat.PNG, 100, oStream);
-			oStream.flush();
-			oStream.close();
-		} catch (IOException e) {
-			Toast.makeText(
-					getApplicationContext(),
-					"There was an issue saving the image.",
-					Toast.LENGTH_SHORT)
-					.show();
-		}		
-		if (putIntoGallery) {
-			putImageIntoGallery(pictureFile);
-		}
-		
-		return pictureFile;
-	}
-	private Bitmap scaleImage(Bitmap bmp) {
-		double lengthToWidthRatio = (((double)bmp.getHeight()) / (double)bmp.getWidth());
-		double scaledWidth = ((double)drawView.getHeight()) / lengthToWidthRatio; 
-		return Bitmap.createScaledBitmap(bmp, (int)scaledWidth, drawView.getHeight(), false);
-	}
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 		
-		if (getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA)) {
-			hasCamera = true;
-			cameraId = findCamera();
-		} else {
-			hasCamera = false;
-		}
-		
 		drawView = (DrawingView)findViewById(R.id.drawing);
+		camMan = new CameraManager(this);
+		drawing = new Drawing(this, drawView);
 		btnCurrPaint = (ImageButton)((LinearLayout)findViewById(R.id.paint_colors)).getChildAt(0);
 		btnDraw = (ImageButton)findViewById(R.id.btnDraw);
 		btnErase = (ImageButton)findViewById(R.id.btnErase);
@@ -284,6 +53,13 @@ public class MainActivity extends Activity {
 		btnCurrPaint.setImageDrawable(getResources().getDrawable(R.drawable.paint_pressed));		
 		btnDraw.setOnClickListener(drawClickListener);
 		btnErase.setOnClickListener(eraseClickListener);
+		
+		if (getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA)) {
+			hasCamera = true;
+			//cameraId =  camMan.findCamera();
+		} else {
+			hasCamera = false;
+		}
 	}
 	public void paintClicked(View view) {
 		drawView.setErasing(false);
@@ -303,13 +79,13 @@ public class MainActivity extends Activity {
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
 		switch (requestCode) {
-			case TAKE_PICTURE:
+			case CameraManager.TAKE_PICTURE:
 				if (resultCode == Activity.RESULT_OK) {
-					getContentResolver().notifyChange(imageUri, null);
+					getContentResolver().notifyChange(camMan.getImageUri(), null);
 					try {
 						Bitmap bmp = MediaStore.Images.Media.getBitmap(
-								getContentResolver(), imageUri);
-						drawView.setBackgroundImage(scaleImage(bmp));
+								getContentResolver(), camMan.getImageUri());
+						drawView.setBackgroundImage(drawing.scaleImage(bmp));
 						bmp = null;
 					} catch (Exception ex) {
 						Toast.makeText(
@@ -340,19 +116,19 @@ public class MainActivity extends Activity {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 			case R.id.menu_new:
-				newDrawing();
+				drawing.newDrawing();
 				break;
 			case R.id.menu_save:
-				saveDrawing();
+				drawing.saveDrawing();
 				break;
 			case R.id.menu_change_background:
-				changeBackground();
+				drawing.changeBackground();
 				break;
 			case R.id.menu_take_picture:
-				takeImage();
+				camMan.takeImage();
 				break;
 			case R.id.menu_set_wallpaper:
-				setAsWallpaper();
+				drawing.setAsWallpaper();
 				break;
 		}
 		return true;
@@ -372,21 +148,21 @@ public class MainActivity extends Activity {
 			btnSmall.setOnClickListener(new OnClickListener() {
 				@Override
 				public void onClick(View view) {
-					setBrushSize(smallBrush);
+					drawing.setBrushSize(smallBrush);
 					brushSizeDialog.dismiss();
 				}
 			});
 			btnMedium.setOnClickListener(new OnClickListener() {
 				@Override
 				public void onClick(View view) {
-					setBrushSize(mediumBrush);
+					drawing.setBrushSize(mediumBrush);
 					brushSizeDialog.dismiss();
 				}
 			});
 			btnLarge.setOnClickListener(new OnClickListener() {
 				@Override
 				public void onClick(View view) {
-					setBrushSize(largeBrush);
+					drawing.setBrushSize(largeBrush);
 					brushSizeDialog.dismiss();
 				}
 			});
@@ -408,21 +184,21 @@ public class MainActivity extends Activity {
 			btnSmall.setOnClickListener(new OnClickListener() {
 				@Override
 				public void onClick(View view) {
-					setEraserSize(smallBrush);
+					drawing.setEraserSize(smallBrush);
 					eraserSizeDialog.dismiss();
 				}
 			});
 			btnMedium.setOnClickListener(new OnClickListener() {
 				@Override
 				public void onClick(View view) {
-					setEraserSize(mediumBrush);
+					drawing.setEraserSize(mediumBrush);
 					eraserSizeDialog.dismiss();
 				}
 			});
 			btnLarge.setOnClickListener(new OnClickListener() {
 				@Override
 				public void onClick(View view) {
-					setEraserSize(largeBrush);
+					drawing.setEraserSize(largeBrush);
 					eraserSizeDialog.dismiss();
 				}
 			});
@@ -434,7 +210,7 @@ public class MainActivity extends Activity {
 		@Override
 		public boolean onShareTargetSelected(ShareActionProvider source, Intent intent) {
 			Intent sendImageIntent = new Intent(Intent.ACTION_SEND).setType("image/png");
-			File image = writeDrawingToDisk(false);
+			File image = drawing.writeDrawingToDisk(false);
 			try {
 			    if (image != null) {
 			    	sendImageIntent.putExtra(Intent.EXTRA_STREAM, Uri.parse(image.getPath()));	
@@ -453,5 +229,4 @@ public class MainActivity extends Activity {
 			return false;
 		}		
 	};
-	
 }
