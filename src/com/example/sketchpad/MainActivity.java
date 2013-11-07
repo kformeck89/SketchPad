@@ -15,10 +15,13 @@ import android.app.Dialog;
 import android.app.WallpaperManager;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
 import android.graphics.BitmapFactory;
 import android.graphics.Picture;
+import android.hardware.Camera;
+import android.hardware.Camera.CameraInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -35,14 +38,19 @@ import android.widget.Toast;
 
 public class MainActivity extends Activity {
 	private static final String FILE_TYPE = ".jpg";
+	private static final String ACTION_CAMERA = "android.media.action.IMAGE_CAPTURE";
+	private static final int TAKE_PICTURE = 1;
 	private DrawingView drawView;
 	private ImageButton btnCurrPaint;
 	private ImageButton btnDraw;
 	private ImageButton btnErase;
 	private ShareActionProvider shareActionProvider;
+	private Uri imageUri;
+	private int cameraId;
 	private float smallBrush;
 	private float mediumBrush;
 	private float largeBrush;
+	private boolean hasCamera;
 	
 	private void setBrushSize(float brushSize) {
 		drawView.setErasing(false);
@@ -160,6 +168,13 @@ public class MainActivity extends Activity {
 		});
 		changeBg.show();
 	}
+	private void takeImage() {
+		Intent cameraIntent = new Intent(ACTION_CAMERA);
+		File photo = new File(Environment.getExternalStorageDirectory(), "Pic.jpg");
+		cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(photo));
+		imageUri = Uri.fromFile(photo);
+		startActivityForResult(cameraIntent, TAKE_PICTURE);
+	}
 	private void setAsWallpaper() {
 		File image = writeDrawingToDisk(false);
 		Bitmap bmp = BitmapFactory.decodeFile(image.getPath());
@@ -188,6 +203,19 @@ public class MainActivity extends Activity {
 					Toast.LENGTH_SHORT)
 					.show();
 		}
+	}
+	private int findCamera() {
+		int foundId = -1;
+		int numCams = Camera.getNumberOfCameras();
+		for (int i = 0; i < numCams; i++) {
+			CameraInfo info = new CameraInfo();
+			Camera.getCameraInfo(i, info);
+			if (info.facing == CameraInfo.CAMERA_FACING_BACK) {
+				foundId = i;
+				break;
+			}
+		}
+		return foundId;
 	}
 	private File writeDrawingToDisk(boolean putIntoGallery) {
 		drawView.setDrawingCacheEnabled(true);
@@ -231,6 +259,13 @@ public class MainActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 		
+		if (getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA)) {
+			hasCamera = true;
+			cameraId = findCamera();
+		} else {
+			hasCamera = false;
+		}
+		
 		drawView = (DrawingView)findViewById(R.id.drawing);
 		btnCurrPaint = (ImageButton)((LinearLayout)findViewById(R.id.paint_colors)).getChildAt(0);
 		btnDraw = (ImageButton)findViewById(R.id.btnDraw);
@@ -243,32 +278,6 @@ public class MainActivity extends Activity {
 		btnCurrPaint.setImageDrawable(getResources().getDrawable(R.drawable.paint_pressed));		
 		btnDraw.setOnClickListener(drawClickListener);
 		btnErase.setOnClickListener(eraseClickListener);
-	}
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		getMenuInflater().inflate(R.menu.main, menu);
-		shareActionProvider = (ShareActionProvider)menu.findItem(R.id.menu_share).getActionProvider();
-		shareActionProvider.setShareIntent(new Intent(Intent.ACTION_SEND).setType("image/png"));
-		shareActionProvider.setOnShareTargetSelectedListener(shareClickListener);
-		return true;
-	}
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		switch (item.getItemId()) {
-			case R.id.menu_new:
-				newDrawing();
-				break;
-			case R.id.menu_save:
-				saveDrawing();
-				break;
-			case R.id.menu_change_background:
-				changeBackground();
-				break;
-			case R.id.menu_set_wallpaper:
-				setAsWallpaper();
-				break;
-		}
-		return true;
 	}
 	public void paintClicked(View view) {
 		drawView.setErasing(false);
@@ -283,6 +292,64 @@ public class MainActivity extends Activity {
 			btnCurrPaint.setImageDrawable(getResources().getDrawable(R.drawable.paint));
 			btnCurrPaint = (ImageButton)view;
 		}
+	}
+	@Override
+	public void onActivityResult(int requestCode, int resultCode, Intent data) {
+		super.onActivityResult(requestCode, resultCode, data);
+		switch (requestCode) {
+			case TAKE_PICTURE:
+				if (resultCode == Activity.RESULT_OK) {
+					getContentResolver().notifyChange(imageUri, null);
+					//find imageview
+					try {
+						Bitmap bmp = MediaStore.Images.Media.getBitmap(
+								getContentResolver(), imageUri);
+						drawView.setBackgroundImage(bmp);
+					} catch (Exception ex) {
+						Toast.makeText(
+								this,
+								"Failed to load the image.",
+								Toast.LENGTH_SHORT)
+								.show();
+					}
+				}
+		}
+	}
+	
+	@Override
+ 	public boolean onCreateOptionsMenu(Menu menu) {
+		getMenuInflater().inflate(R.menu.main, menu);
+		shareActionProvider = (ShareActionProvider)menu.findItem(R.id.menu_share).getActionProvider();
+		shareActionProvider.setShareIntent(new Intent(Intent.ACTION_SEND).setType("image/png"));
+		shareActionProvider.setOnShareTargetSelectedListener(shareClickListener);
+		return true;
+	}
+	@Override
+	public boolean onPrepareOptionsMenu(Menu menu) {
+		super.onPrepareOptionsMenu(menu);
+		menu.findItem(R.id.menu_take_picture).setEnabled(hasCamera);
+		return true;
+	}
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+			case R.id.menu_new:
+				newDrawing();
+				break;
+			case R.id.menu_save:
+				saveDrawing();
+				break;
+			case R.id.menu_change_background:
+				changeBackground();
+				break;
+			case R.id.menu_take_picture:
+				takeImage();
+				break;
+			case R.id.menu_set_wallpaper:
+				setAsWallpaper();
+				break;
+		}
+		return true;
 	}
 	
 	private OnClickListener drawClickListener = new OnClickListener() {
