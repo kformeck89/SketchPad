@@ -1,30 +1,61 @@
-<LinearLayout
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout 
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:gravity="center"
-    android:orientation="vertical">
+    android:layout_gravity="center"
+    android:orientation="vertical" >
     
-    <ImageButton
-        android:id="@+id/small_brush"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:contentDescription="@string/small"
-        android:src="@drawable/small"/>
-    <ImageButton
-        android:id="@+id/medium_brush"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:contentDescription="@string/medium"
-        android:src="@drawable/medium"/>
-    <ImageButton
-        android:id="@+id/large_brush"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:contentDescription="@string/large"
-        android:src="@drawable/large"/>
+	<TextView 
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:text="@string/brush_size"/>
+	
+	<LinearLayout 
+	    android:layout_width="match_parent"
+	    android:layout_height="wrap_content"
+	    android:orientation="horizontal">
+	    <SeekBar
+	        android:id="@+id/barBrushWeight"
+	        android:layout_width="0dp"
+	        android:layout_height="wrap_content"
+	        android:layout_weight="70"
+	        android:max="66"
+	        android:progress="10"/>
+	    <ImageView 
+	        android:id="@+id/imgBrushWeightDisplay"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:layout_weight="15"
+	        android:contentDescription="@string/brush_weight_desc"
+	        android:src="@drawable/large"/>
+	    <TextView 
+	        android:id="@+id/txtPixels"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:layout_weight="15"
+	        android:text="@string/brush_chooser_pixel_default"/>
+	</LinearLayout>
+	
+	<LinearLayout
+	    android:layout_width="match_parent"
+	    android:layout_height="wrap_content"
+	    android:orientation="horizontal">
+	    <Button
+	        android:id="@+id/btnAccept"
+	        android:layout_width="0dp"
+	        android:layout_height="wrap_content"
+	        android:layout_weight="1"
+	        android:text="@string/accept"
+	        style="?android:attr/buttonBarStyle"/>
+	    <Button
+	        android:id="@+id/btnClose"
+	        android:layout_width="0dp"
+	        android:layout_height="wrap_content"
+	        android:layout_weight="1"
+	        android:text="@string/close"
+	        style="?android:attr/buttonBarStyle"/>
+	</LinearLayout>
+	
     
 </LinearLayout>

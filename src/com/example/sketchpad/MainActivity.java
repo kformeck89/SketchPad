@@ -5,22 +5,32 @@ import java.io.File;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.SeekBar;
+import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.ShareActionProvider;
 import android.widget.ShareActionProvider.OnShareTargetSelectedListener;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class MainActivity extends Activity {
+	private final String LAST_BRUSH_WEIGHT = "last_brush_weight";
+	private final String LAST_ERASER_WEIGHT = "last_eraser_weight";
+	private final int minBrushEraserSize = 1;
 	private Drawing drawing;
 	private DrawingView drawView;
 	private CameraManager camMan;
@@ -28,15 +38,76 @@ public class MainActivity extends Activity {
 	private ImageButton btnDraw;
 	private ImageButton btnErase;
 	private ShareActionProvider shareActionProvider;
-	private float smallBrush;
-	private float mediumBrush;
-	private float largeBrush;
+	private SharedPreferences sharedPrefs;
+	private int maxBrushEraserSize;
 	private boolean hasCamera;
+	private enum Utensil { Brush, Eraser };
 	
+	private void adjustBrushAndEraserSize(int currentSize, final Dialog dialog, final Utensil utensil) {
+		dialog.setContentView(R.layout.brush_chooser);
+		final SeekBar barBrushWeight = (SeekBar)dialog.findViewById(
+				R.id.barBrushWeight);
+		Button btnAccept = (Button)dialog.findViewById(
+				R.id.btnAccept);
+		Button btnClose = (Button)dialog.findViewById(
+				R.id.btnClose);
+		final ImageView brushSizeIndicator = (ImageView)dialog.findViewById(
+				R.id.imgBrushWeightDisplay);
+		final TextView txtPixelSize = (TextView)dialog.findViewById(
+				R.id.txtPixels);
+		
+		maxBrushEraserSize = barBrushWeight.getMax();
+		barBrushWeight.setProgress(currentSize);
+		brushSizeIndicator.getLayoutParams().width = currentSize;
+		brushSizeIndicator.getLayoutParams().height = currentSize;
+		txtPixelSize.setText(currentSize + "px");
+		
+		barBrushWeight.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
+			@Override
+			public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+				if (progress <= maxBrushEraserSize && progress >= minBrushEraserSize) {
+					txtPixelSize.setText(progress + "px");
+					brushSizeIndicator.getLayoutParams().height = progress;
+					brushSizeIndicator.getLayoutParams().width = progress;	
+				}
+			}
+			@Override
+			public void onStartTrackingTouch(SeekBar seekBar) { }
+			@Override
+			public void onStopTrackingTouch(SeekBar seekBar) { }
+		});	
+		btnAccept.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				float weight = Float.parseFloat(Integer.toString(barBrushWeight.getProgress()));
+				if (utensil == Utensil.Brush) {
+					drawing.setBrushSize(weight);
+					sharedPrefs.edit()
+					           .putFloat(LAST_BRUSH_WEIGHT, weight)
+					           .apply();	
+				} else {
+					drawing.setEraserSize(weight);
+					sharedPrefs.edit()
+					           .putFloat(LAST_ERASER_WEIGHT, weight)
+					           .apply();
+				}
+				dialog.dismiss();
+			}
+		});
+		btnClose.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				dialog.dismiss();
+			}
+		});
+		dialog.show();
+	}
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+		
+		sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
 		
 		drawView = (DrawingView)findViewById(R.id.drawing);
 		camMan = new CameraManager(this);
@@ -44,11 +115,9 @@ public class MainActivity extends Activity {
 		btnCurrPaint = (ImageButton)((LinearLayout)findViewById(R.id.paint_colors)).getChildAt(0);
 		btnDraw = (ImageButton)findViewById(R.id.btnDraw);
 		btnErase = (ImageButton)findViewById(R.id.btnErase);
-		smallBrush = getResources().getInteger(R.integer.small_size);
-		mediumBrush = getResources().getInteger(R.integer.medium_size);
-		largeBrush = getResources().getInteger(R.integer.large_size);
 		
-		drawView.setBrushSize(mediumBrush);
+		drawing.setEraserSize(sharedPrefs.getFloat(LAST_ERASER_WEIGHT, 12));
+		drawing.setBrushSize(sharedPrefs.getFloat(LAST_BRUSH_WEIGHT, 12));
 		drawView.setColor(btnCurrPaint.getTag().toString());
 		btnCurrPaint.setImageDrawable(getResources().getDrawable(R.drawable.paint_pressed));		
 		btnDraw.setOnClickListener(drawClickListener);
@@ -56,13 +125,11 @@ public class MainActivity extends Activity {
 		
 		if (getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA)) {
 			hasCamera = true;
-			//cameraId =  camMan.findCamera();
 		} else {
 			hasCamera = false;
 		}
 	}
 	public void paintClicked(View view) {
-		drawView.setErasing(false);
 		if (view != btnCurrPaint) {
 			ImageButton imgView = (ImageButton)view;
 			String color = imgView.getTag().toString();
@@ -96,8 +163,7 @@ public class MainActivity extends Activity {
 					}
 				}
 		}
-	}
-	
+	}	
 	@Override
  	public boolean onCreateOptionsMenu(Menu menu) {
 		getMenuInflater().inflate(R.menu.main, menu);
@@ -136,74 +202,20 @@ public class MainActivity extends Activity {
 	
 	private OnClickListener drawClickListener = new OnClickListener() {
 		@Override
-		public void onClick(View view) {			
+		public void onClick(View view) {
+			int brushSize = (int)drawing.getBrushSize();
 			final Dialog brushSizeDialog = new Dialog(MainActivity.this);
-			brushSizeDialog.setTitle("Brush Size:");
-			brushSizeDialog.setContentView(R.layout.brush_chooser);
-			
-			ImageButton btnSmall = (ImageButton)brushSizeDialog.findViewById(R.id.small_brush);
-			ImageButton btnMedium = (ImageButton)brushSizeDialog.findViewById(R.id.medium_brush);
-			ImageButton btnLarge = (ImageButton)brushSizeDialog.findViewById(R.id.large_brush);
-			
-			btnSmall.setOnClickListener(new OnClickListener() {
-				@Override
-				public void onClick(View view) {
-					drawing.setBrushSize(smallBrush);
-					brushSizeDialog.dismiss();
-				}
-			});
-			btnMedium.setOnClickListener(new OnClickListener() {
-				@Override
-				public void onClick(View view) {
-					drawing.setBrushSize(mediumBrush);
-					brushSizeDialog.dismiss();
-				}
-			});
-			btnLarge.setOnClickListener(new OnClickListener() {
-				@Override
-				public void onClick(View view) {
-					drawing.setBrushSize(largeBrush);
-					brushSizeDialog.dismiss();
-				}
-			});
-			
-			brushSizeDialog.show();
+			brushSizeDialog.setTitle("Brush Size: ");
+			adjustBrushAndEraserSize(brushSize, brushSizeDialog, Utensil.Brush);
 		}
-	};
+	};	
 	private OnClickListener eraseClickListener = new OnClickListener() {
 		@Override
 		public void onClick(View view) {
-			final Dialog eraserSizeDialog = new Dialog(MainActivity.this);
-			eraserSizeDialog.setTitle("Eraser Size: ");
-			eraserSizeDialog.setContentView(R.layout.brush_chooser);
-			
-			ImageButton btnSmall = (ImageButton)eraserSizeDialog.findViewById(R.id.small_brush);
-			ImageButton btnMedium = (ImageButton)eraserSizeDialog.findViewById(R.id.medium_brush);
-			ImageButton btnLarge = (ImageButton)eraserSizeDialog.findViewById(R.id.large_brush);
-			
-			btnSmall.setOnClickListener(new OnClickListener() {
-				@Override
-				public void onClick(View view) {
-					drawing.setEraserSize(smallBrush);
-					eraserSizeDialog.dismiss();
-				}
-			});
-			btnMedium.setOnClickListener(new OnClickListener() {
-				@Override
-				public void onClick(View view) {
-					drawing.setEraserSize(mediumBrush);
-					eraserSizeDialog.dismiss();
-				}
-			});
-			btnLarge.setOnClickListener(new OnClickListener() {
-				@Override
-				public void onClick(View view) {
-					drawing.setEraserSize(largeBrush);
-					eraserSizeDialog.dismiss();
-				}
-			});
-			
-			eraserSizeDialog.show();
+			int eraserSize = (int)drawing.getEraserSize();
+			final Dialog eraserSizeDialog = new Dialog(MainActivity.this);	
+			eraserSizeDialog.setTitle("Eraser Size: " );			
+			adjustBrushAndEraserSize(eraserSize, eraserSizeDialog, Utensil.Eraser);
 		}
 	};
 	private OnShareTargetSelectedListener shareClickListener = new OnShareTargetSelectedListener() {

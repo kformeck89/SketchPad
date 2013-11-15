@@ -163,8 +163,5 @@ public class ImageFileDialog {
 		public void remove(L listener) {
 			listenerList.remove(listener);
 		}
-		public List<L> getListenerList() {
-			return listenerList;
-		}
 	}		
 }

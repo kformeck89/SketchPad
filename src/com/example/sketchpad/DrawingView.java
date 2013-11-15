@@ -10,7 +10,6 @@ import android.graphics.Path;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.util.AttributeSet;
-import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -22,6 +21,7 @@ public class DrawingView extends View {
 	private Bitmap canvasBitmap;
 	private int paintColor;
 	private float brushSize;
+	private float eraserSize;
 	private float lastBrushSize;
 	private boolean isErasing = false;
 	
@@ -34,7 +34,7 @@ public class DrawingView extends View {
 		drawPath = new Path();
 		drawPaint = new Paint();
 		
-		brushSize = getResources().getInteger(R.integer.medium_size);
+		brushSize = getResources().getInteger(R.integer.default_brush_size);
 		lastBrushSize = brushSize;
 		
 		drawPaint.setColor(paintColor);
@@ -85,18 +85,34 @@ public class DrawingView extends View {
 		return true;
 	}
 	
+	private void setErasing(boolean erasing) {
+		this.isErasing = erasing;
+		if (isErasing) {
+			drawPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
+		} else {
+			drawPaint.setXfermode(null);
+		}
+	}
 	public void setColor(String newColor) {
 		invalidate();
 		paintColor = Color.parseColor(newColor);
 		drawPaint.setColor(paintColor);
 	}
+	public float getBrushSize() {
+		return brushSize;
+	}
 	public void setBrushSize(float newSize) {
-		float pixelAmount = TypedValue.applyDimension(
-				TypedValue.COMPLEX_UNIT_DIP, 
-				newSize, 
-				getResources().getDisplayMetrics());
-		brushSize = pixelAmount;
+		brushSize = newSize;
 		drawPaint.setStrokeWidth(brushSize);
+		setErasing(false);
+	}
+	public float getEraserSize() {
+		return eraserSize;
+	}
+	public void setEraserSize(float newSize) {
+		eraserSize = newSize;
+		drawPaint.setStrokeWidth(eraserSize);
+		setErasing(true);
 	}
 	public void setLastBrushSize(float lastBrushSize) {
 		this.lastBrushSize = lastBrushSize;
@@ -106,14 +122,5 @@ public class DrawingView extends View {
 	}
 	public float getLastBrushSize() {
 		return lastBrushSize;
-	}
-	public void setErasing(boolean erasing) {
-		this.isErasing = erasing;
-		if (isErasing) {
-			drawPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
-		} else {
-			drawPaint.setXfermode(null);
-		}
-	}
-	
+	}	
 }

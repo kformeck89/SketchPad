@@ -42,15 +42,6 @@ public class Drawing {
 					.show();
 		}
 	}
-	public void setBrushSize(float brushSize) {
-		drawView.setErasing(false);
-		drawView.setBrushSize(brushSize);
-		drawView.setLastBrushSize(brushSize);
-	}
-	public void setEraserSize(float eraserSize) {
-		drawView.setErasing(true);
-		drawView.setBrushSize(eraserSize);
-	}
 	public void newDrawing() {
 		AlertDialog.Builder newDrawingDialog = new AlertDialog.Builder(context);
 		
@@ -213,5 +204,19 @@ public class Drawing {
 		double lengthToWidthRatio = (((double)bmp.getHeight()) / (double)bmp.getWidth());
 		double scaledWidth = ((double)drawView.getHeight()) / lengthToWidthRatio; 
 		return Bitmap.createScaledBitmap(bmp, (int)scaledWidth, drawView.getHeight(), false);
+	}
+
+	public float getBrushSize() {
+		return drawView.getBrushSize();
+	}
+	public void setBrushSize(float brushSize) {
+		drawView.setBrushSize(brushSize);
+		drawView.setLastBrushSize(brushSize);
+	}
+	public float getEraserSize() {
+		return drawView.getEraserSize();
+	}
+	public void setEraserSize(float eraserSize) {
+		drawView.setEraserSize(eraserSize);
 	}
 }

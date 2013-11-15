@@ -34,14 +34,12 @@ public final class R {
          */
         public static final int activity_horizontal_margin=0x7f050000;
         public static final int activity_vertical_margin=0x7f050001;
+        /**   Brushes 
+         */
+        public static final int brush_image_size=0x7f050006;
         public static final int colorbutton_margin=0x7f050005;
         public static final int drawingview_margin_lr=0x7f050004;
         public static final int drawingview_margin_topbot=0x7f050003;
-        public static final int large_brush=0x7f050008;
-        public static final int medium_brush=0x7f050007;
-        /**   Brushes 
-         */
-        public static final int small_brush=0x7f050006;
         public static final int toolbar_height=0x7f050002;
     }
     public static final class drawable {
@@ -50,31 +48,29 @@ public final class R {
         public static final int ic_launcher=0x7f020002;
         public static final int large=0x7f020003;
         public static final int main_background=0x7f020004;
-        public static final int medium=0x7f020005;
-        public static final int paint=0x7f020006;
-        public static final int paint_pressed=0x7f020007;
-        public static final int small=0x7f020008;
+        public static final int paint=0x7f020005;
+        public static final int paint_pressed=0x7f020006;
     }
     public static final class id {
-        public static final int action_settings=0x7f0a000d;
+        public static final int action_settings=0x7f0a000f;
+        public static final int barBrushWeight=0x7f0a0004;
+        public static final int btnAccept=0x7f0a0007;
+        public static final int btnClose=0x7f0a0008;
         public static final int btnDraw=0x7f0a0000;
         public static final int btnErase=0x7f0a0001;
         public static final int drawing=0x7f0a0002;
-        public static final int large_brush=0x7f0a0006;
-        public static final int medium_brush=0x7f0a0005;
-        public static final int menu_change_background=0x7f0a000a;
-        public static final int menu_new=0x7f0a0007;
-        public static final int menu_save=0x7f0a0008;
-        public static final int menu_set_wallpaper=0x7f0a000c;
-        public static final int menu_share=0x7f0a0009;
-        public static final int menu_take_picture=0x7f0a000b;
+        public static final int imgBrushWeightDisplay=0x7f0a0005;
+        public static final int menu_change_background=0x7f0a000c;
+        public static final int menu_new=0x7f0a0009;
+        public static final int menu_save=0x7f0a000a;
+        public static final int menu_set_wallpaper=0x7f0a000e;
+        public static final int menu_share=0x7f0a000b;
+        public static final int menu_take_picture=0x7f0a000d;
         public static final int paint_colors=0x7f0a0003;
-        public static final int small_brush=0x7f0a0004;
+        public static final int txtPixels=0x7f0a0006;
     }
     public static final class integer {
-        public static final int large_size=0x7f060002;
-        public static final int medium_size=0x7f060001;
-        public static final int small_size=0x7f060000;
+        public static final int default_brush_size=0x7f060000;
     }
     public static final class layout {
         public static final int activity_main=0x7f030000;
@@ -84,19 +80,21 @@ public final class R {
         public static final int main=0x7f090000;
     }
     public static final class string {
+        public static final int accept=0x7f07000f;
         public static final int action_settings=0x7f070007;
         public static final int app_name=0x7f070000;
         public static final int brush=0x7f070008;
+        public static final int brush_chooser_pixel_default=0x7f07000b;
+        public static final int brush_size=0x7f07000d;
+        public static final int brush_weight_desc=0x7f07000e;
         public static final int change_background=0x7f070004;
+        public static final int close=0x7f070010;
         public static final int erase=0x7f070009;
-        public static final int large=0x7f07000d;
-        public static final int medium=0x7f07000c;
         public static final int paint=0x7f07000a;
         public static final int save=0x7f070002;
-        public static final int save_dir_name=0x7f07000e;
+        public static final int save_dir_name=0x7f07000c;
         public static final int set_wallpaper=0x7f070006;
         public static final int share=0x7f070003;
-        public static final int small=0x7f07000b;
         public static final int start_new=0x7f070001;
         public static final int take_picture=0x7f070005;
     }

@@ -46,8 +46,8 @@
         android:layout_gravity="center"
         android:orientation="horizontal">
         <ImageButton
-            android:layout_width="@dimen/large_brush"
-            android:layout_height="@dimen/large_brush"
+            android:layout_width="@dimen/brush_image_size"
+            android:layout_height="@dimen/brush_image_size"
             android:layout_margin="@dimen/colorbutton_margin"
             android:background="@color/brown"
             android:contentDescription="@string/paint"
@@ -55,8 +55,8 @@
             android:src="@drawable/paint"
             android:tag="@color/brown"/>
         <ImageButton
-            android:layout_width="@dimen/large_brush"
-            android:layout_height="@dimen/large_brush"
+            android:layout_width="@dimen/brush_image_size"
+            android:layout_height="@dimen/brush_image_size"
             android:layout_margin="@dimen/colorbutton_margin"
             android:background="@color/red"
             android:contentDescription="@string/paint"
@@ -64,8 +64,8 @@
             android:src="@drawable/paint"
             android:tag="@color/red"/>
         <ImageButton
-            android:layout_width="@dimen/large_brush"
-            android:layout_height="@dimen/large_brush"
+            android:layout_width="@dimen/brush_image_size"
+            android:layout_height="@dimen/brush_image_size"
             android:layout_margin="@dimen/colorbutton_margin"
             android:background="@color/orange"
             android:contentDescription="@string/paint"
@@ -73,8 +73,8 @@
             android:src="@drawable/paint"
             android:tag="@color/orange"/>
         <ImageButton
-            android:layout_width="@dimen/large_brush"
-            android:layout_height="@dimen/large_brush"
+            android:layout_width="@dimen/brush_image_size"
+            android:layout_height="@dimen/brush_image_size"
             android:layout_margin="@dimen/colorbutton_margin"
             android:background="@color/yellow"
             android:contentDescription="@string/paint"
@@ -82,8 +82,8 @@
             android:src="@drawable/paint"
             android:tag="@color/yellow"/>
         <ImageButton
-            android:layout_width="@dimen/large_brush"
-            android:layout_height="@dimen/large_brush"
+            android:layout_width="@dimen/brush_image_size"
+            android:layout_height="@dimen/brush_image_size"
             android:layout_margin="@dimen/colorbutton_margin"
             android:background="@color/green"
             android:contentDescription="@string/paint"
@@ -91,8 +91,8 @@
             android:src="@drawable/paint"
             android:tag="@color/green"/>
         <ImageButton
-            android:layout_width="@dimen/large_brush"
-            android:layout_height="@dimen/large_brush"
+            android:layout_width="@dimen/brush_image_size"
+            android:layout_height="@dimen/brush_image_size"
             android:layout_margin="@dimen/colorbutton_margin"
             android:background="@color/teal"
             android:contentDescription="@string/paint"
@@ -106,8 +106,8 @@
         android:layout_gravity="center"
         android:orientation="horizontal">
         <ImageButton
-            android:layout_width="@dimen/large_brush"
-            android:layout_height="@dimen/large_brush"
+            android:layout_width="@dimen/brush_image_size"
+            android:layout_height="@dimen/brush_image_size"
             android:layout_margin="@dimen/colorbutton_margin"
             android:background="@color/blue"
             android:contentDescription="@string/paint"
@@ -115,8 +115,8 @@
             android:src="@drawable/paint"
             android:tag="@color/blue"/>
         <ImageButton
-            android:layout_width="@dimen/large_brush"
-            android:layout_height="@dimen/large_brush"
+            android:layout_width="@dimen/brush_image_size"
+            android:layout_height="@dimen/brush_image_size"
             android:layout_margin="@dimen/colorbutton_margin"
             android:background="@color/violet"
             android:contentDescription="@string/paint"
@@ -124,8 +124,8 @@
             android:src="@drawable/paint"
             android:tag="@color/violet"/>
         <ImageButton
-            android:layout_width="@dimen/large_brush"
-            android:layout_height="@dimen/large_brush"
+            android:layout_width="@dimen/brush_image_size"
+            android:layout_height="@dimen/brush_image_size"
             android:layout_margin="@dimen/colorbutton_margin"
             android:background="@color/pink"
             android:contentDescription="@string/paint"
@@ -133,8 +133,8 @@
             android:src="@drawable/paint"
             android:tag="@color/pink"/>
         <ImageButton
-            android:layout_width="@dimen/large_brush"
-            android:layout_height="@dimen/large_brush"
+            android:layout_width="@dimen/brush_image_size"
+            android:layout_height="@dimen/brush_image_size"
             android:layout_margin="@dimen/colorbutton_margin"
             android:background="@color/white"
             android:contentDescription="@string/paint"
@@ -142,8 +142,8 @@
             android:src="@drawable/paint"
             android:tag="@color/white"/>
         <ImageButton
-            android:layout_width="@dimen/large_brush"
-            android:layout_height="@dimen/large_brush"
+            android:layout_width="@dimen/brush_image_size"
+            android:layout_height="@dimen/brush_image_size"
             android:layout_margin="@dimen/colorbutton_margin"
             android:background="@color/gray_palette"
             android:contentDescription="@string/paint"
@@ -151,8 +151,8 @@
             android:src="@drawable/paint"
             android:tag="@color/gray_palette"/>
         <ImageButton
-            android:layout_width="@dimen/large_brush"
-            android:layout_height="@dimen/large_brush"
+            android:layout_width="@dimen/brush_image_size"
+            android:layout_height="@dimen/brush_image_size"
             android:layout_margin="@dimen/colorbutton_margin"
             android:background="@color/black"
             android:contentDescription="@string/paint"
