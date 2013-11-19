@@ -13,6 +13,8 @@
     
 	<string name="brush">Brush</string>
     <string name="erase">Erase</string>
+    <string name="undo">Undo</string>
+    <string name="redo">Redo</string>
 	
     <string name="paint">Paint</string>
     <string name="brush_chooser_pixel_default">0px</string>

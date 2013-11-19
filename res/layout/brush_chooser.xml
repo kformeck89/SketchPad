@@ -13,27 +13,29 @@
 	
 	<LinearLayout 
 	    android:layout_width="match_parent"
-	    android:layout_height="wrap_content"
+	    android:layout_height="@dimen/brush_chooser_dialog_content_height"
 	    android:orientation="horizontal">
 	    <SeekBar
 	        android:id="@+id/barBrushWeight"
 	        android:layout_width="0dp"
 	        android:layout_height="wrap_content"
-	        android:layout_weight="70"
-	        android:max="66"
+	        android:layout_weight="8"
+	        android:max="100"
 	        android:progress="10"/>
 	    <ImageView 
 	        android:id="@+id/imgBrushWeightDisplay"
 	        android:layout_width="wrap_content"
 	        android:layout_height="wrap_content"
-	        android:layout_weight="15"
+	        android:layout_gravity="center_vertical"
+	        android:layout_weight="1"
 	        android:contentDescription="@string/brush_weight_desc"
 	        android:src="@drawable/large"/>
 	    <TextView 
 	        android:id="@+id/txtPixels"
 	        android:layout_width="wrap_content"
 	        android:layout_height="wrap_content"
-	        android:layout_weight="15"
+	        android:layout_gravity="center_vertical"
+	        android:layout_weight="1"
 	        android:text="@string/brush_chooser_pixel_default"/>
 	</LinearLayout>
 	

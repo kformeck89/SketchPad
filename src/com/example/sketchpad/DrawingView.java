@@ -1,5 +1,8 @@
 package com.example.sketchpad;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -14,19 +17,27 @@ import android.view.MotionEvent;
 import android.view.View;
 
 public class DrawingView extends View {
+	private Context context;
 	private Path drawPath;
 	private Paint drawPaint;
-	private Paint canvasPaint;
 	private Canvas drawCanvas;
 	private Bitmap canvasBitmap;
+	private int previousPaintColor;
 	private int paintColor;
 	private float brushSize;
 	private float eraserSize;
 	private float lastBrushSize;
 	private boolean isErasing = false;
+	private List<Path> moveList = null;
+	private List<Path> undoList = null;
+	private List<Path> currentMoveList = null;
 	
 	public DrawingView(Context context, AttributeSet attrs) {
 		super(context, attrs);
+		this.context = context;
+		this.moveList = new ArrayList<Path>();
+		this.undoList = new ArrayList<Path>();
+		this.currentMoveList = new ArrayList<Path>();
 		setupDrawing();
 	}
 	
@@ -43,8 +54,6 @@ public class DrawingView extends View {
 		drawPaint.setStyle(Paint.Style.STROKE);
 		drawPaint.setStrokeJoin(Paint.Join.ROUND);
 		drawPaint.setStrokeCap(Paint.Cap.ROUND);
-		
-		canvasPaint = new Paint(Paint.DITHER_FLAG);
 	}
 	@Override
 	protected void onSizeChanged(int w, int h, int oldw, int oldh) {
@@ -54,29 +63,49 @@ public class DrawingView extends View {
 	}
 	@Override
 	protected void onDraw(Canvas canvas) {
-		canvas.drawBitmap(canvasBitmap, 0, 0, canvasPaint);
-		canvas.drawPath(drawPath, drawPaint);
+		int color = drawPaint.getColor();
+		for (Path path : currentMoveList) {
+			canvas.drawPath(path, drawPaint);
+		}
+		for (Path path : moveList) {
+			canvas.drawPath(path, drawPaint);	
+		}
 	}
 	public void startNewDrawing() {
 		setBackgroundColor(getResources().getColor(R.color.white));
 		drawCanvas.drawColor(0, PorterDuff.Mode.CLEAR);
 		invalidate();
 	}
+	public void undo() {
+		if (moveList.size() > 0) {
+			undoList.add(moveList.remove(moveList.size() - 1));
+			invalidate();	
+		}
+	}
+	public void redo() {
+		if (undoList.size() > 0) {
+			moveList.add(undoList.remove(undoList.size() - 1));
+			invalidate();
+		}
+	}
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
 		float touchX = event.getX();
 		float touchY = event.getY();
-		
 		switch (event.getAction()) {
 			case MotionEvent.ACTION_DOWN:
 				drawPath.moveTo(touchX, touchY);
 				break;
 			case MotionEvent.ACTION_MOVE:
 				drawPath.lineTo(touchX, touchY);
+				currentMoveList.add(drawPath);
 				break;
 			case MotionEvent.ACTION_UP:
+				drawPath.lineTo(touchX, touchY);
 				drawCanvas.drawPath(drawPath, drawPaint);
-				drawPath.reset();
+				moveList.add(drawPath);
+				drawPath = new Path();
+				currentMoveList.clear();
 				break;
 			default:
 				return false;
@@ -87,16 +116,26 @@ public class DrawingView extends View {
 	
 	private void setErasing(boolean erasing) {
 		this.isErasing = erasing;
+		int colorToSet = 0;
+		previousPaintColor = drawPaint.getColor();
+		if (previousPaintColor <= 0) {
+			colorToSet = context.getResources().getColor(R.color.brown);
+		} else {
+			colorToSet = previousPaintColor;
+		}
 		if (isErasing) {
+			drawPaint.setColor(context.getResources().getColor(R.color.white));
 			drawPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
 		} else {
+			drawPaint.setColor(colorToSet);
 			drawPaint.setXfermode(null);
 		}
 	}
 	public void setColor(String newColor) {
-		invalidate();
+		this.previousPaintColor = drawPaint.getColor();
 		paintColor = Color.parseColor(newColor);
 		drawPaint.setColor(paintColor);
+		invalidate();
 	}
 	public float getBrushSize() {
 		return brushSize;

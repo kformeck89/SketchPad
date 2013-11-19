@@ -11,7 +11,6 @@ import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.util.AttributeSet;
-import android.util.FloatMath;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
@@ -20,14 +19,14 @@ import android.widget.RelativeLayout;
 
 
 public class HSVColorPickerDialog extends AlertDialog {
-
 	private static final int PADDING_DP = 20;
-
 	private static final int CONTROL_SPACING_DP = 20;
 	private static final int SELECTED_COLOR_HEIGHT_DP = 50;
 	private static final int BORDER_DP = 1;
 	private static final int BORDER_COLOR = Color.BLACK;
-
+	private HSVColorWheel colorWheel;
+	private HSVValueSlider valueSlider;
+	private View selectedColorView;
 	private final OnColorSelectedListener listener;
 	private int selectedColor;
 
@@ -100,6 +99,10 @@ public class HSVColorPickerDialog extends AlertDialog {
 		setView( layout, padding, padding, padding, padding );
 	}
 
+	public void setNoColorButton( int res ) {
+		setButton( BUTTON_NEUTRAL, getContext().getString( res ), clickListener ); 
+	}
+
 	private OnClickListener clickListener = new DialogInterface.OnClickListener() {
 		public void onClick(DialogInterface dialog, int which) {
 			switch ( which ) {
@@ -116,55 +119,48 @@ public class HSVColorPickerDialog extends AlertDialog {
 			}
 		}
 	};
-
-	private HSVColorWheel colorWheel;
-	private HSVValueSlider valueSlider;
-
-	private View selectedColorView;
-
-	/**
-	 * Adds a button to the dialog that allows a user to select "No color",
-	 * which will call the listener's {@link OnColorSelectedListener#colorSelected(Integer) colorSelected(Integer)} callback
-	 * with null as its parameter  
-	 * @param res A string resource with the text to be used on this button
-	 */
-	public void setNoColorButton( int res ) {
-		setButton( BUTTON_NEUTRAL, getContext().getString( res ), clickListener ); 
-	}
-
+	
 	private static class HSVColorWheel  extends View {
-
 		private static final float SCALE = 2f;
 		private static final float FADE_OUT_FRACTION = 0.03f;
-
 		private static final int POINTER_LINE_WIDTH_DP = 2;
 		private static final int POINTER_LENGTH_DP = 10;
-
+		float[] colorHsv = { 0f, 0f, 1f };
+		private Rect rect;
+		private Bitmap bitmap;
+		private int[] pixels;
+		private float innerCircleRadius;
+		private float fullCircleRadius;
+		private int scaledWidth;
+		private int scaledHeight;
+		private int[] scaledPixels;
+		private float scaledInnerCircleRadius;
+		private float scaledFullCircleRadius;
+		private float scaledFadeOutSize;
+		private Point selectedPoint = new Point();
 		private final Context context;
-
+		private int scale;
+		private int pointerLength;
+		private int innerPadding;
+		private Paint pointerPaint = new Paint();
 		private OnColorSelectedListener listener;
+		
 		public HSVColorWheel(Context context, AttributeSet attrs, int defStyle) {
 			super(context, attrs, defStyle);
 			this.context = context;
 			init();
 		}
-
 		public HSVColorWheel(Context context, AttributeSet attrs) {
 			super(context, attrs);
 			this.context = context;
 			init();
 		}
-
 		public HSVColorWheel(Context context) {
 			super(context);
 			this.context = context;
 			init();
 		}
 
-		private int scale;
-		private int pointerLength;
-		private int innerPadding;
-		private Paint pointerPaint = new Paint();
 		private void init() {
 			float density = context.getResources().getDisplayMetrics().density;
 			scale = (int) (density * SCALE);
@@ -172,48 +168,26 @@ public class HSVColorPickerDialog extends AlertDialog {
 			pointerPaint.setStrokeWidth(  (int) (density * POINTER_LINE_WIDTH_DP ) );
 			innerPadding = pointerLength / 2;
 		}
-
 		public void setListener( OnColorSelectedListener listener ) {
 			this.listener = listener;
-		}
-
-		float[] colorHsv = { 0f, 0f, 1f };
+		}		
 		public void setColor( int color ) {
 			Color.colorToHSV(color, colorHsv);
 			invalidate();
 		}
-
 		@Override
 		protected void onDraw(Canvas canvas) {
 			if ( bitmap != null ) {
 				canvas.drawBitmap(bitmap, null, rect, null);
 				float hueInPiInterval = colorHsv[0] / 180f * (float)Math.PI;
 
-				selectedPoint.x = rect.left + (int) (-FloatMath.cos( hueInPiInterval ) * colorHsv[1] * innerCircleRadius + fullCircleRadius);
-				selectedPoint.y = rect.top + (int) (-FloatMath.sin( hueInPiInterval ) * colorHsv[1] * innerCircleRadius + fullCircleRadius);
+				selectedPoint.x = rect.left + (int) (-java.lang.Math.cos( hueInPiInterval ) * colorHsv[1] * innerCircleRadius + fullCircleRadius);
+				selectedPoint.y = rect.top + (int) (-java.lang.Math.sin( hueInPiInterval ) * colorHsv[1] * innerCircleRadius + fullCircleRadius);
 
 				canvas.drawLine( selectedPoint.x - pointerLength, selectedPoint.y, selectedPoint.x + pointerLength, selectedPoint.y, pointerPaint );
 				canvas.drawLine( selectedPoint.x, selectedPoint.y - pointerLength, selectedPoint.x, selectedPoint.y + pointerLength, pointerPaint );
 			}
 		}
-
-		private Rect rect;
-		private Bitmap bitmap;
-
-		private int[] pixels;
-		private float innerCircleRadius;
-		private float fullCircleRadius;
-
-		private int scaledWidth;
-		private int scaledHeight;
-		private int[] scaledPixels;
-
-		private float scaledInnerCircleRadius;
-		private float scaledFullCircleRadius;
-		private float scaledFadeOutSize;
-
-		private Point selectedPoint = new Point();
-
 		@Override
 		protected void onSizeChanged(int w, int h, int oldw, int oldh) {
 			super.onSizeChanged(w, h, oldw, oldh);
@@ -234,7 +208,6 @@ public class HSVColorPickerDialog extends AlertDialog {
 
 			createBitmap();
 		}
-
 		private void createBitmap() {
 			int w = rect.width();
 			int h = rect.height();
@@ -281,7 +254,6 @@ public class HSVColorPickerDialog extends AlertDialog {
 
 			invalidate();
 		}
-
 		@Override
 		protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
 			int maxWidth = MeasureSpec.getSize( widthMeasureSpec );
@@ -295,7 +267,6 @@ public class HSVColorPickerDialog extends AlertDialog {
 
 			setMeasuredDimension( width, height );
 		}
-
 		public int getColorForPoint( int x, int y, float[] hsv ) {
 			x -= fullCircleRadius;
 			y -= fullCircleRadius;
@@ -304,7 +275,6 @@ public class HSVColorPickerDialog extends AlertDialog {
 			hsv[ 1 ] = Math.max( 0f, Math.min( 1f, (float) (centerDist / innerCircleRadius) ) );
 			return Color.HSVToColor( hsv );
 		}
-
 		@Override
 		public boolean onTouchEvent(MotionEvent event) {
 			int action = event.getActionMasked();
@@ -321,27 +291,27 @@ public class HSVColorPickerDialog extends AlertDialog {
 		}
 
 	}
-
 	private static class HSVValueSlider extends View {
-
+		float[] colorHsv = { 0f, 0f, 1f };
+		private OnColorSelectedListener listener;
+		private Rect srcRect;
+		private Rect dstRect;
+		private Bitmap bitmap;
+		private int[] pixels;
+		
 		public HSVValueSlider(Context context, AttributeSet attrs, int defStyle) {
 			super(context, attrs, defStyle);
 		}
-
 		public HSVValueSlider(Context context, AttributeSet attrs) {
 			super(context, attrs);
 		}
-
 		public HSVValueSlider(Context context) {
 			super(context);
 		}
-
-		private OnColorSelectedListener listener;
+		
 		public void setListener( OnColorSelectedListener listener ) {
 			this.listener = listener;
-		}
-
-		float[] colorHsv = { 0f, 0f, 1f };
+		}		
 		public void setColor( int color, boolean keepValue ) {
 			float oldValue = colorHsv[2];
 			Color.colorToHSV(color, colorHsv);
@@ -354,18 +324,12 @@ public class HSVColorPickerDialog extends AlertDialog {
 
 			createBitmap();
 		}
-
 		@Override
 		protected void onDraw(Canvas canvas) {
 			if ( bitmap != null ) {
 				canvas.drawBitmap(bitmap, srcRect, dstRect, null);
 			}
 		}
-		private Rect srcRect;
-		private Rect dstRect;
-		private Bitmap bitmap;
-		private int[] pixels;
-
 		@Override
 		protected void onSizeChanged(int w, int h, int oldw, int oldh) {
 			super.onSizeChanged(w, h, oldw, oldh);
@@ -377,7 +341,6 @@ public class HSVColorPickerDialog extends AlertDialog {
 
 			createBitmap();
 		}
-
 		private void createBitmap() {
 			if ( bitmap == null ) {
 				return;
@@ -406,7 +369,6 @@ public class HSVColorPickerDialog extends AlertDialog {
 
 			invalidate();
 		}
-
 		@Override
 		public boolean onTouchEvent(MotionEvent event) {
 			int action = event.getActionMasked();

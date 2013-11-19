@@ -37,6 +37,8 @@ public class MainActivity extends Activity {
 	private ImageButton btnCurrPaint;
 	private ImageButton btnDraw;
 	private ImageButton btnErase;
+	private ImageButton btnUndo;
+	private ImageButton btnRedo;
 	private ShareActionProvider shareActionProvider;
 	private SharedPreferences sharedPrefs;
 	private int maxBrushEraserSize;
@@ -115,6 +117,8 @@ public class MainActivity extends Activity {
 		btnCurrPaint = (ImageButton)((LinearLayout)findViewById(R.id.paint_colors)).getChildAt(0);
 		btnDraw = (ImageButton)findViewById(R.id.btnDraw);
 		btnErase = (ImageButton)findViewById(R.id.btnErase);
+		btnUndo = (ImageButton)findViewById(R.id.btnUndo);
+		btnRedo = (ImageButton)findViewById(R.id.btnRedo);
 		
 		drawing.setEraserSize(sharedPrefs.getFloat(LAST_ERASER_WEIGHT, 12));
 		drawing.setBrushSize(sharedPrefs.getFloat(LAST_BRUSH_WEIGHT, 12));
@@ -122,6 +126,8 @@ public class MainActivity extends Activity {
 		btnCurrPaint.setImageDrawable(getResources().getDrawable(R.drawable.paint_pressed));		
 		btnDraw.setOnClickListener(drawClickListener);
 		btnErase.setOnClickListener(eraseClickListener);
+		btnUndo.setOnClickListener(undoClickListener);
+		btnRedo.setOnClickListener(redoClickListener);
 		
 		if (getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA)) {
 			hasCamera = true;
@@ -216,6 +222,18 @@ public class MainActivity extends Activity {
 			final Dialog eraserSizeDialog = new Dialog(MainActivity.this);	
 			eraserSizeDialog.setTitle("Eraser Size: " );			
 			adjustBrushAndEraserSize(eraserSize, eraserSizeDialog, Utensil.Eraser);
+		}
+	};
+	private OnClickListener undoClickListener = new OnClickListener() {
+		@Override
+		public void onClick(View view) {
+			drawView.undo();
+		}
+	};
+	private OnClickListener redoClickListener = new OnClickListener() {
+		@Override
+		public void onClick(View view) {
+			drawView.redo();
 		}
 	};
 	private OnShareTargetSelectedListener shareClickListener = new OnShareTargetSelectedListener() {

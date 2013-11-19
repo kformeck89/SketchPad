@@ -45,4 +45,7 @@ public class CameraManager {
 	public Uri getImageUri() {
 		return imageUri;
 	}
+	public int getCameraId() {
+		return cameraId;
+	}
 }

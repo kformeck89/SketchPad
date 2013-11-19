@@ -7,6 +7,7 @@
     <dimen name="drawingview_margin_topbot">3dp</dimen>
     <dimen name="drawingview_margin_lr">5dp</dimen>
     <dimen name="colorbutton_margin">2dp</dimen>
+    <dimen name="brush_chooser_dialog_content_height">120dp</dimen>
     
     <!--  Brushes -->
     <dimen name="brush_image_size">30dp</dimen>

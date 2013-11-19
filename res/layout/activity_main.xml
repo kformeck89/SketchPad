@@ -24,6 +24,18 @@
             android:layout_height="match_parent"
             android:contentDescription="@string/erase"
             android:src="@drawable/eraser"/>
+        <ImageButton
+            android:id="@+id/btnUndo"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:contentDescription="@string/undo"
+            android:src="@drawable/undo"/>
+        <ImageButton
+            android:id="@+id/btnRedo"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:contentDescription="@string/redo"
+            android:src="@drawable/redo"/>
     </LinearLayout>
     
     <!-- Drawing Canvas -->
