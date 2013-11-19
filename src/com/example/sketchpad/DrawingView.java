@@ -28,16 +28,16 @@ public class DrawingView extends View {
 	private float eraserSize;
 	private float lastBrushSize;
 	private boolean isErasing = false;
-	private List<Path> moveList = null;
-	private List<Path> undoList = null;
-	private List<Path> currentMoveList = null;
+	private List<PaintPathPair> undoList = null;
+	private List<PaintPathPair> currentMoveList = null;
+	private List<PaintPathPair> moveList = null;
 	
 	public DrawingView(Context context, AttributeSet attrs) {
 		super(context, attrs);
 		this.context = context;
-		this.moveList = new ArrayList<Path>();
-		this.undoList = new ArrayList<Path>();
-		this.currentMoveList = new ArrayList<Path>();
+		this.moveList = new ArrayList<PaintPathPair>();
+		this.undoList = new ArrayList<PaintPathPair>();
+		this.currentMoveList = new ArrayList<PaintPathPair>();
 		setupDrawing();
 	}
 	
@@ -63,12 +63,12 @@ public class DrawingView extends View {
 	}
 	@Override
 	protected void onDraw(Canvas canvas) {
-		int color = drawPaint.getColor();
-		for (Path path : currentMoveList) {
-			canvas.drawPath(path, drawPaint);
+		drawPaint.setColor(paintColor);
+		for (PaintPathPair pair : currentMoveList) {
+			canvas.drawPath(pair.getPath(), pair.getPaint());
 		}
-		for (Path path : moveList) {
-			canvas.drawPath(path, drawPaint);	
+		for (PaintPathPair pair : moveList) {
+			canvas.drawPath(pair.getPath(), pair.getPaint());	
 		}
 	}
 	public void startNewDrawing() {
@@ -98,12 +98,12 @@ public class DrawingView extends View {
 				break;
 			case MotionEvent.ACTION_MOVE:
 				drawPath.lineTo(touchX, touchY);
-				currentMoveList.add(drawPath);
+				currentMoveList.add(new PaintPathPair(drawPaint, drawPath));
 				break;
 			case MotionEvent.ACTION_UP:
 				drawPath.lineTo(touchX, touchY);
 				drawCanvas.drawPath(drawPath, drawPaint);
-				moveList.add(drawPath);
+				moveList.add(new PaintPathPair(new Paint(drawPaint), drawPath));
 				drawPath = new Path();
 				currentMoveList.clear();
 				break;
@@ -134,7 +134,6 @@ public class DrawingView extends View {
 	public void setColor(String newColor) {
 		this.previousPaintColor = drawPaint.getColor();
 		paintColor = Color.parseColor(newColor);
-		drawPaint.setColor(paintColor);
 		invalidate();
 	}
 	public float getBrushSize() {
