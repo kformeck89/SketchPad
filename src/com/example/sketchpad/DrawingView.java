@@ -20,6 +20,7 @@ public class DrawingView extends View {
 	private Context context;
 	private Path drawPath;
 	private Paint drawPaint;
+	private Paint canvasPaint;
 	private Canvas drawCanvas;
 	private Bitmap canvasBitmap;
 	private int previousPaintColor;
@@ -28,6 +29,7 @@ public class DrawingView extends View {
 	private float eraserSize;
 	private float lastBrushSize;
 	private boolean isErasing = false;
+	private boolean isImageLoaded = false;
 	private List<PaintPathPair> undoList = null;
 	private List<PaintPathPair> currentMoveList = null;
 	private List<PaintPathPair> moveList = null;
@@ -38,9 +40,15 @@ public class DrawingView extends View {
 		this.moveList = new ArrayList<PaintPathPair>();
 		this.undoList = new ArrayList<PaintPathPair>();
 		this.currentMoveList = new ArrayList<PaintPathPair>();
+		this.canvasPaint = new Paint(Paint.DITHER_FLAG);
 		setupDrawing();
 	}
 	
+	private void clearBrushes() {
+		moveList.clear();
+		undoList.clear();
+		currentMoveList.clear();
+	}
 	private void setupDrawing() {
 		drawPath = new Path();
 		drawPaint = new Paint();
@@ -63,6 +71,9 @@ public class DrawingView extends View {
 	}
 	@Override
 	protected void onDraw(Canvas canvas) {
+		if (isImageLoaded) {
+			canvas.drawBitmap(canvasBitmap, 0, 0, canvasPaint);	
+		}
 		drawPaint.setColor(paintColor);
 		for (PaintPathPair pair : currentMoveList) {
 			canvas.drawPath(pair.getPath(), pair.getPaint());
@@ -74,6 +85,8 @@ public class DrawingView extends View {
 	public void startNewDrawing() {
 		setBackgroundColor(getResources().getColor(R.color.white));
 		drawCanvas.drawColor(0, PorterDuff.Mode.CLEAR);
+		clearBrushes();
+		isImageLoaded = false;
 		invalidate();
 	}
 	public void undo() {
@@ -156,7 +169,11 @@ public class DrawingView extends View {
 		this.lastBrushSize = lastBrushSize;
 	}
 	public void setBackgroundImage(Bitmap image) {
+		isImageLoaded = true;
+		clearBrushes();
+		canvasBitmap = image;
 		drawCanvas.drawBitmap(image, new Matrix(), null);
+		invalidate();
 	}
 	public float getLastBrushSize() {
 		return lastBrushSize;
